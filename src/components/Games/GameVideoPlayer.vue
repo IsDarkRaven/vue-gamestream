@@ -1,19 +1,15 @@
 <script setup>
-
 defineProps({
   video: {
     type: String,
     required: true,
   },
 })
-
 </script>
 
 <template>
   <div class="game-video-player">
-    <video controls ref="videoRef">
-      <source :src="video" type="video/mp4" />
-    </video>
+    <video controls autoplay ref="videoRef" :src="video" type="video/mp4" />
   </div>
 </template>
 

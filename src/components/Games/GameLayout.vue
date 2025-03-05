@@ -1,18 +1,41 @@
 <script setup>
-import { ref, useSlots } from 'vue'
-import SharedSearch from '../Shared/SharedSearch.vue';
+import { ref, watch } from 'vue'
+import SharedSearch from '../Shared/SharedSearch.vue'
 
-const slots = useSlots()
+const emit = defineEmits(['setGameView'])
+
+const { title, games } = defineProps({
+  title: {
+    type: String,
+    default: 'Recent games',
+  },
+  games: {
+    type: Array,
+    required: true,
+  },
+})
+
 const searchInput = ref('')
 
+watch(searchInput, (newValue) => {
+  if (newValue.trim().length === 0) {
+    emit('setGameView', games)
+    return
+  }
+  const filteredGames = games.filter(
+    (game) =>
+      game.title.toLowerCase().includes(newValue.toLowerCase()) ||
+      game.tags.some((tag) => tag.toLowerCase().includes(newValue.toLowerCase())),
+  )
+  emit('setGameView', filteredGames)
+})
 </script>
 
 <template>
   <section>
-    <slot name="title" />
-    <h2 v-if="slots.title === undefined">Recent games</h2>
+    <h2>{{ title }}</h2>
     <div class="game-layout">
-      <SharedSearch v-model="searchInput" class="my-class" id="search-form"/>
+      <SharedSearch v-model="searchInput" class="my-class" id="search-form" />
       <slot />
     </div>
   </section>
