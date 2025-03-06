@@ -1,59 +1,41 @@
 <script setup>
-import LayoutHero from './components/Layout/LayoutHero.vue'
-import GameCard from './components/Games/GameCard.vue'
-import GameLayout from './components/Games/GameLayout.vue'
-import { onMounted, reactive, ref, watch } from 'vue'
-import GameModal from './components/Games/GameModal.vue'
+  import { ref, watch } from 'vue'
+  import GameCard from './components/Games/GameCard.vue'
+  import GameLayout from './components/Games/GameLayout.vue'
+  import GameModal from './components/Games/GameModal.vue'
+  import LayoutHero from './components/Layout/LayoutHero.vue'
+  import SharedLoader from './components/Shared/SharedLoader.vue'
+  import { useFetch } from './composables/useFetch'
 
-const API_URL = 'https://gamestreamapi.herokuapp.com/api/games'
+  const API_URL = 'https://gamestreamapi.herokuapp.com/api/games'
+  const gamesView = ref([])
 
-const state = reactive({
-  error: null,
-  isLoading: false,
-  data: [],
-})
+  const { state } = useFetch(API_URL)
 
-const gamesView = ref([])
+  watch(state, (newValue) => {
+    gamesView.value = newValue.data
+  })
 
-const fetchGames = async () => {
-  try {
-    state.isLoading = true
-    const response = await fetch(API_URL)
-    const json = await response.json()
-    state.data = json
-  } catch (error) {
-    console.error(error)
-    state.error = error
-  } finally {
-    state.isLoading = false
+  const setGameView = (filteredGames) => {
+    gamesView.value = filteredGames
   }
-}
-
-onMounted(() => {
-  fetchGames()
-})
-
-watch(state, (newValue) => {
-  gamesView.value = newValue.data
-})
-
-const setGameView = (filteredGames) => {
-  gamesView.value = filteredGames
-}
 </script>
 
 <template>
   <LayoutHero />
   <main>
+    <SharedLoader v-if="state.isLoading" />
     <GameLayout title="Recent games" :games="state.data" @set-game-view="setGameView">
       <GameCard v-for="game in gamesView" :key="game.title" :game="game" />
     </GameLayout>
-    <GameModal />
+    <Teleport to="body">
+      <GameModal />
+    </Teleport>
   </main>
 </template>
 
 <style scoped>
-main {
-  padding: 2rem;
-}
+  main {
+    padding: 2rem;
+  }
 </style>
